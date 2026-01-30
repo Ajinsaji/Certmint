@@ -1,0 +1,167 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+
+@import url('https://fonts.googleapis.com/css2?family=Forum&family=Kosugi+Maru&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Tiro+Devanagari+Hindi:ital@0;1&family=UnifrakturCook:wght@700&display=swap');
+
+/* ================================
+   GLOBAL BASE
+================================ */
+body {
+  margin: 0;
+
+  /* Clean, modern, neutral font stack */
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont,
+    'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell',
+    'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+
+  /* Smooth fonts */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+
+  /* FIXED background + text */
+  @apply bg-gray-50 text-gray-900;
+}
+
+code {
+  font-family: 'JetBrains Mono', Menlo, Monaco, Consolas,
+    'Courier New', monospace;
+}
+
+.input-field {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border-radius: 0.5rem;
+  border: 1px solid #374151; /* gray-700 */
+  background-color: #111827; /* gray-900 */
+  color: #f9fafb; /* gray-50 */
+  font-size: 0.95rem;
+  transition: all 0.2s ease;
+}
+
+.input-field::placeholder {
+  color: #9ca3af; /* gray-400 */
+}
+
+.input-field:focus {
+  outline: none;
+  border-color: #2563eb; /* blue-600 */
+  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.35);
+  background-color: #020617; /* darker focus */
+}
+
+.input-field:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* ================================
+   COMPONENT LAYER
+================================ */
+@layer components {
+
+  /* ---------- BUTTONS (KEEPING YOUR STYLE) ---------- */
+  .btn-primary {
+    @apply px-5 py-2.5 rounded-xl font-poppins font-semibold 
+    bg-blue-600 text-white shadow-md shadow-blue-300/30 
+    hover:bg-blue-700 active:scale-95 
+    transition-all duration-200;
+  }
+
+  .btn-secondary {
+    @apply px-5 py-2.5 rounded-xl font-poppins font-medium 
+    bg-white border border-slate-300 
+    text-slate-700 shadow-sm
+    hover:bg-slate-100 active:scale-95 
+    transition-all duration-200;
+  }
+
+  .btn-gradient {
+    @apply px-5 py-2.5 rounded-xl font-poppins font-semibold 
+    bg-gradient-to-r from-blue-600 to-teal-500 
+    text-white shadow-md shadow-blue-300/40 
+    hover:opacity-90 active:scale-95 
+    transition-all duration-200;
+  }
+
+  /* ---------- AUTH / FORM LAYOUT ---------- */
+  .auth-page {
+    @apply min-h-screen flex items-center justify-center bg-gray-50;
+  }
+
+  .auth-container {
+    @apply w-full max-w-md px-6;
+  }
+
+  .auth-logo {
+    @apply flex items-center justify-center gap-2 
+    mb-6 text-2xl font-semibold text-gray-800;
+  }
+
+  .auth-card {
+    @apply bg-white rounded-2xl shadow-lg border border-gray-200;
+  }
+
+  .auth-card-body {
+    @apply p-6 space-y-6;
+  }
+
+  .auth-title {
+    @apply text-xl font-bold text-center text-gray-900;
+  }
+
+  /* ---------- FORM ELEMENTS ---------- */
+  .form-group {
+    @apply space-y-1;
+  }
+
+  .form-label {
+    @apply block text-sm font-medium text-gray-700;
+  }
+
+  .form-input {
+    @apply w-full rounded-lg border border-gray-300 
+    bg-gray-50 px-3 py-2 text-gray-900 
+    placeholder-gray-400
+    focus:outline-none focus:ring-2 
+    focus:ring-blue-600 focus:border-blue-600;
+  }
+
+  .form-checkbox {
+    @apply w-4 h-4 rounded border border-gray-300 
+    bg-gray-50 focus:ring-2 focus:ring-blue-600;
+  }
+
+  /* ---------- TEXT HELPERS ---------- */
+  .text-muted {
+    @apply text-sm text-gray-500;
+  }
+
+  .link {
+    @apply font-medium text-blue-600 hover:underline;
+  }
+
+  /* ---------- ALERTS ---------- */
+  .alert-error {
+    @apply text-sm text-red-600 bg-red-50 
+    border border-red-200 rounded-md 
+    px-3 py-2;
+  }
+
+  .alert-success {
+    @apply text-sm text-green-700 bg-green-50 
+    border border-green-200 rounded-md 
+    px-3 py-2;
+  }
+
+  /* ---------- PAGE WRAPPERS ---------- */
+  .page-container {
+    @apply min-h-screen bg-gray-50 p-6;
+  }
+
+  .page-title {
+    @apply text-2xl font-bold text-gray-900;
+  }
+
+}

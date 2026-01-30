@@ -1,0 +1,36 @@
+(await wallet.getBalance()).toString()
+wallet.address
+const wallet = new Wallet(process.env.DEPLOYER_PRIVATE_KEY, provider);
+const provider = new providers.JsonRpcProvider(process.env.SEPOLIA_RPC_URL);
+const { Wallet, providers } = require("ethers");
+.exit
+wallet.address
+const wallet = new Wallet(process.env.DEPLOYER_PRIVATE_KEY, provider);
+const { Wallet, providers } = require("ethers");
+.exit
+await cert.isInstitutionApproved(owner.address);
+await tx.wait();
+const tx = await cert.approveInstitution(owner.address, true);
+owner.address
+const [owner] = await ethers.getSigners();
+cert.address
+cert = await ethers.getContractAt("CertificateNFT", certAddr);
+let cert;
+const certAddr = "0x9a178EC86B4Fc7B2097227aFC6759A253E37134E";
+cert
+const cert = await ethers.getContractAt("CertificateNFT", "0x9a178EC86B4Fc7B2097227aFC6759A253E37134E");
+await cert.approveInstitution(owner.address, true);
+owner.address
+const [owner] = await ethers.getSigners();
+const cert = await ethers.getContract
+const certAddr = "0x9a178EC86B4Fc7B2097227aFC6759A253E37134E";
+.exit
+await c
+const [owner] = await ethers.getSigners();
+const cert = await ethers.getContractAt("CertificateNFT", addr);
+const addr = process.env.CERTIFICATE_NFT_ADDRESS;
+owner.address
+const [owner] = await ethers.getSigners();
+.exit
+const [deployer] = await ethers.getSingers();deployers.address
+const [deployer] = await ethers.getSingers();
