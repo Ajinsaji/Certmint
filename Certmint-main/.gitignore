@@ -1,6 +1,15 @@
+# Dependencies
 node_modules/
-.env
 Backend-private/node_modules/
 frontend/node_modules/
+
+# Environment variables
+.env
+
+# Build files
 dist/
 build/
+
+# Uploaded files (VERY IMPORTANT)
+Certmint-main/Backend-private/server/uploads/
+

@@ -9,6 +9,21 @@ export default function CertificateView() {
   const { id } = useParams();
   const navigate = useNavigate();
 
+  const user = (() => {
+    try {
+      return JSON.parse(localStorage.getItem("user") || "null");
+    } catch {
+      return null;
+    }
+  })();
+
+  const goBack = () => {
+    if (user?.role === "INSTITUTION") navigate("/institution-dashboard");
+    else if (user?.role === "STUDENT") navigate("/student-dashboard");
+    else if (user?.role === "ADMIN") navigate("/admin-dashboard");
+    else navigate("/login");
+  };
+
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [certificate, setCertificate] = useState(null);
@@ -103,7 +118,7 @@ export default function CertificateView() {
       <div className="w-full max-w-5xl px-4">
         <button
           type="button"
-          onClick={() => navigate("/student-dashboard")}
+          onClick={goBack}
           className="inline-flex items-center gap-2 text-white/90 hover:text-white bg-white/10 hover:bg-white/15 px-3 py-2 rounded-lg transition"
           aria-label="Go back"
         >
@@ -127,7 +142,7 @@ export default function CertificateView() {
         </button>
       </div>
       <CertificatePreview
-        ref={certRef} 
+        ref={certRef}
         institution={institution}
         institutionName={certificate.institutionName}
         studentName={certificate.studentName}
@@ -140,6 +155,8 @@ export default function CertificateView() {
             year: "numeric",
           }
         )}
+        timePeriod={certificate.timePeriod}
+        extraContent={certificate.extraContent}
       />
       <div className="flex gap-4">
         <button

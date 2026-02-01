@@ -1,5 +1,6 @@
 const express = require("express");
 const mongoose = require("mongoose");
+const bcrypt = require("bcryptjs");
 
 const authMiddleware = require("../middleware/auth");
 const requireAdmin = require("../middleware/requireAdmin");
@@ -8,6 +9,7 @@ const User = require("../config/models/User");
 const Student = require("../config/models/Student");
 const Institution = require("../config/models/Institution");
 const Certificate = require("../config/models/Certificate");
+const PendingInstitutionRequest = require("../config/models/PendingInstitutionRequest");
 
 const router = express.Router();
 
@@ -20,6 +22,32 @@ function makeRegex(q) {
   if (!q) return null;
   return new RegExp(String(q).trim().replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "i");
 }
+
+// ----------------------------
+// STATS (for admin dashboard overview)
+// GET /api/admin/stats
+// ----------------------------
+router.get("/stats", authMiddleware, requireAdmin, async (req, res) => {
+  try {
+    const [usersCount, studentsCount, institutionsCount, certificatesCount, pendingCount] = await Promise.all([
+      User.countDocuments(),
+      Student.countDocuments(),
+      Institution.countDocuments(),
+      Certificate.countDocuments(),
+      PendingInstitutionRequest.countDocuments({ status: "PENDING" }),
+    ]);
+    return res.json({
+      users: usersCount,
+      students: studentsCount,
+      institutions: institutionsCount,
+      certificates: certificatesCount,
+      pendingRequests: pendingCount,
+    });
+  } catch (err) {
+    console.error("GET /admin/stats error:", err);
+    return res.status(500).json({ message: "Server error" });
+  }
+});
 
 // ----------------------------
 // USERS (filter by name/email/role)
@@ -55,6 +83,7 @@ router.get("/users", authMiddleware, requireAdmin, async (req, res) => {
         name: u.name,
         email: u.email,
         role: u.role,
+        banned: !!u.banned,
         createdAt: u.createdAt,
       })),
     });
@@ -89,10 +118,52 @@ router.patch("/users/:id", authMiddleware, requireAdmin, async (req, res) => {
 
     return res.json({
       message: "User updated",
-      user: { id: user._id, name: user.name, email: user.email, role: user.role },
+      user: { id: user._id, name: user.name, email: user.email, role: user.role, banned: user.banned },
     });
   } catch (err) {
     console.error("PATCH /admin/users/:id error:", err);
+    return res.status(500).json({ message: "Server error" });
+  }
+});
+
+// Ban user - PATCH /api/admin/users/:id/ban
+router.patch("/users/:id/ban", authMiddleware, requireAdmin, async (req, res) => {
+  try {
+    const { id } = req.params;
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ message: "Invalid user id" });
+    }
+    const user = await User.findById(id).lean();
+    if (!user) return res.status(404).json({ message: "User not found" });
+    if (user.role === "ADMIN") {
+      return res.status(400).json({ message: "Cannot ban an admin" });
+    }
+    await User.updateOne({ _id: id }, { banned: true });
+    return res.json({
+      message: "User banned",
+      user: { id: user._id, name: user.name, email: user.email, role: user.role, banned: true },
+    });
+  } catch (err) {
+    console.error("PATCH /admin/users/:id/ban error:", err);
+    return res.status(500).json({ message: "Server error" });
+  }
+});
+
+// Unban user - PATCH /api/admin/users/:id/unban
+router.patch("/users/:id/unban", authMiddleware, requireAdmin, async (req, res) => {
+  try {
+    const { id } = req.params;
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ message: "Invalid user id" });
+    }
+    const user = await User.findByIdAndUpdate(id, { banned: false }, { new: true }).lean();
+    if (!user) return res.status(404).json({ message: "User not found" });
+    return res.json({
+      message: "User unbanned",
+      user: { id: user._id, name: user.name, email: user.email, role: user.role, banned: false },
+    });
+  } catch (err) {
+    console.error("PATCH /admin/users/:id/unban error:", err);
     return res.status(500).json({ message: "Server error" });
   }
 });
@@ -130,6 +201,108 @@ router.delete("/users/:id", authMiddleware, requireAdmin, async (req, res) => {
     return res.json({ message: "User deleted" });
   } catch (err) {
     console.error("DELETE /admin/users/:id error:", err);
+    return res.status(500).json({ message: "Server error" });
+  }
+});
+
+// ----------------------------
+// PENDING INSTITUTION REQUESTS (signup requests)
+// GET /api/admin/pending-institutions
+// ----------------------------
+router.get("/pending-institutions", authMiddleware, requireAdmin, async (req, res) => {
+  try {
+    const list = await PendingInstitutionRequest.find({ status: "PENDING" })
+      .sort({ createdAt: -1 })
+      .lean();
+    return res.json({
+      requests: list.map((r) => ({
+        id: r._id,
+        institutionName: r.institutionName,
+        email: r.email,
+        phone: r.phone || "",
+        address: r.address || "",
+        documentPath: r.documentPath || null,
+        documentOriginalName: r.documentOriginalName || null,
+        createdAt: r.createdAt,
+      })),
+    });
+  } catch (err) {
+    console.error("GET /admin/pending-institutions error:", err);
+    return res.status(500).json({ message: "Server error" });
+  }
+});
+
+// POST /api/admin/pending-institutions/:id/approve - create User + Institution, return temp password
+router.post("/pending-institutions/:id/approve", authMiddleware, requireAdmin, async (req, res) => {
+  try {
+    const { id } = req.params;
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ message: "Invalid request id" });
+    }
+    const request = await PendingInstitutionRequest.findById(id).lean();
+    if (!request) return res.status(404).json({ message: "Request not found" });
+    if (request.status !== "PENDING") {
+      return res.status(400).json({ message: "Request already processed" });
+    }
+    const existingUser = await User.findOne({ email: request.email });
+    if (existingUser) {
+      return res.status(400).json({ message: "A user with this email already exists" });
+    }
+    // Password is same as email for easy first login
+    const salt = await bcrypt.genSalt(10);
+    const passwordHash = await bcrypt.hash(request.email, salt);
+    const user = await User.create({
+      name: request.institutionName,
+      email: request.email,
+      passwordHash,
+      role: "INSTITUTION",
+    });
+    await Institution.create({
+      userId: user._id,
+      name: request.institutionName,
+      address: request.address || "",
+      contactNumber: request.phone || "",
+      locationUrl: "",
+    });
+    await PendingInstitutionRequest.updateOne(
+      { _id: id },
+      {
+        status: "APPROVED",
+        approvedBy: req.user.userId,
+        approvedAt: new Date(),
+        createdUserId: user._id,
+      }
+    );
+    return res.json({
+      message: "Institution approved. They can login with email and password same as email.",
+      passwordSameAsEmail: true,
+      user: { id: user._id, name: user.name, email: user.email, role: user.role },
+    });
+  } catch (err) {
+    console.error("POST /admin/pending-institutions/:id/approve error:", err);
+    return res.status(500).json({ message: "Server error" });
+  }
+});
+
+// Reject: optional - PATCH /api/admin/pending-institutions/:id/reject
+router.patch("/pending-institutions/:id/reject", authMiddleware, requireAdmin, async (req, res) => {
+  try {
+    const { id } = req.params;
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ message: "Invalid request id" });
+    }
+    const request = await PendingInstitutionRequest.findById(id);
+    if (!request) return res.status(404).json({ message: "Request not found" });
+    if (request.status !== "PENDING") {
+      return res.status(400).json({ message: "Request already processed" });
+    }
+    request.status = "REJECTED";
+    request.approvedBy = req.user.userId;
+    request.approvedAt = new Date();
+    await request.save();
+    return res.json({ message: "Request rejected" });
+  } catch (err) {
+    console.error("PATCH /admin/pending-institutions/:id/reject error:", err);
     return res.status(500).json({ message: "Server error" });
   }
 });
@@ -214,7 +387,7 @@ router.get("/institutions/:id", authMiddleware, requireAdmin, async (req, res) =
     }
 
     const institution = await Institution.findById(id)
-      .populate({ path: "userId", model: "User", select: "name email role" })
+      .populate({ path: "userId", model: "User", select: "name email role banned createdAt" })
       .lean();
 
     if (!institution) {
@@ -236,6 +409,22 @@ router.get("/institutions/:id", authMiddleware, requireAdmin, async (req, res) =
       .limit(1000)
       .lean();
 
+    // Document from signup request (if institution was approved from a pending request)
+    let documentPath = null;
+    let documentOriginalName = null;
+    if (institution.userId && institution.userId._id) {
+      const approvedRequest = await PendingInstitutionRequest.findOne({
+        createdUserId: institution.userId._id,
+        status: "APPROVED",
+      })
+        .select("documentPath documentOriginalName")
+        .lean();
+      if (approvedRequest) {
+        documentPath = approvedRequest.documentPath || null;
+        documentOriginalName = approvedRequest.documentOriginalName || null;
+      }
+    }
+
     return res.json({
       institution: {
         id: institution._id,
@@ -244,12 +433,17 @@ router.get("/institutions/:id", authMiddleware, requireAdmin, async (req, res) =
         address: institution.address || "",
         contactNumber: institution.contactNumber || "",
         locationUrl: institution.locationUrl || "",
+        createdAt: institution.createdAt,
+        documentPath,
+        documentOriginalName,
         user: institution.userId
           ? {
               id: institution.userId._id,
               name: institution.userId.name,
               email: institution.userId.email,
               role: institution.userId.role,
+              banned: !!institution.userId.banned,
+              createdAt: institution.userId.createdAt,
             }
           : null,
       },

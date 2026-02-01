@@ -1,9 +1,16 @@
 export default function CertificateCard({ cert }) {
   if (!cert) return null;
 
-  return (
-    <div className="bg-gray-900 border border-gray-700 rounded-xl shadow hover:shadow-xl transition-all overflow-hidden">
+  const handleClick = () => {
+    window.open(`/certificate/${cert.id}`, "_blank");
+  };
 
+  return (
+    <button
+      type="button"
+      onClick={handleClick}
+      className="w-full text-left bg-gray-900 border border-gray-700 rounded-xl shadow hover:shadow-xl hover:border-blue-500/50 transition-all overflow-hidden cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-gray-900"
+    >
       {/* 3:4 Ratio Container */}
       <div className="aspect-[3/4] flex flex-col justify-between p-5 text-center">
 
@@ -56,16 +63,13 @@ export default function CertificateCard({ cert }) {
             })}
           </p>
 
-          {/* Action */}
-          <button
-            onClick={() => window.open(`/certificate/${cert.id}`, "_blank")}
-            className="w-full py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md font-medium transition"
-          >
+          {/* Action hint */}
+          <span className="inline-block w-full py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md font-medium transition">
             View
-          </button>
+          </span>
         </div>
 
       </div>
-    </div>
+    </button>
   );
 }

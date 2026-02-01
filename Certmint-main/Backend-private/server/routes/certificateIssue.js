@@ -14,7 +14,7 @@ const mintCertificateNFT = require("../blockchain/mintCertificateNFT.cjs");
 
 router.post("/", authMiddleware, async (req, res) => {
   try {
-    const { subject, studentName, studentEmail } = req.body;
+    const { subject, studentName, studentEmail, timePeriod, extraContent } = req.body;
     const userId = req.user.userId; // institution's userId
 
     // find institution
@@ -30,6 +30,8 @@ router.post("/", authMiddleware, async (req, res) => {
       studentNameSnapshot: studentName,
       studentEmailSnapshot: studentEmail,
       institutionNameSnapshot: institution.name,
+      ...(timePeriod && { timePeriod: String(timePeriod).trim() }),
+      ...(extraContent && { extraContent: String(extraContent).trim() }),
     });
 
     // 🔗 Mint NFT on blockchain
@@ -151,6 +153,8 @@ router.get("/:id", async (req, res) => {
       dateOfIssue: cert.dateOfIssue,
       institutionId: cert.institution,
       blockchainTokenId: cert.blockchainTokenId,
+      timePeriod: cert.timePeriod || null,
+      extraContent: cert.extraContent || null,
     });
   } catch (err) {
     console.error("Get certificate error:", err);

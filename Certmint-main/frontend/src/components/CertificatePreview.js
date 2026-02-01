@@ -2,7 +2,7 @@ import React, { forwardRef } from "react";
 
 
 const CertificatePreview = forwardRef(
-  ({ institution, institutionName, studentName, subject, issueDate }, ref) => {
+  ({ institution, institutionName, studentName, subject, issueDate, timePeriod, extraContent }, ref) => {
     const displayInstitutionName =
       institution?.name || institutionName || "Institution Name";
     return (
@@ -49,6 +49,17 @@ const CertificatePreview = forwardRef(
           >
             {subject || "Course / Achievement"}
           </div>
+
+          {/* Time period & extra content (manual) */}
+          {(timePeriod || extraContent) && (
+            <div
+              className="absolute w-full text-center text-sm text-gray-600 space-y-0.5"
+              style={{ top: "73%" }}
+            >
+              {timePeriod && <div>{timePeriod}</div>}
+              {extraContent && <div>{extraContent}</div>}
+            </div>
+          )}
 
           {/* Issue Date */}
           <div className="absolute bottom-8 left-1/2 -translate-x-1/2 text-sm text-gray-600 text-center tracking-wide">

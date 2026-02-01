@@ -8,6 +8,10 @@ const studentSchema = new mongoose.Schema(
       required: true,
       unique: true,
     },
+    dateOfBirth: {
+      type: Date,
+      default: null,
+    },
   },
   { timestamps: true }
 );

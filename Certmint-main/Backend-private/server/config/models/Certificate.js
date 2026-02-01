@@ -55,6 +55,18 @@ const certificateSchema = new mongoose.Schema(
       unique: true,
       sparse: true,
     },
+
+    // optional: time period (e.g. "January 2024 - June 2024") – manual content
+    timePeriod: {
+      type: String,
+      trim: true,
+    },
+
+    // optional: extra content line (e.g. duration, location) – manual content
+    extraContent: {
+      type: String,
+      trim: true,
+    },
     // blockchain NFT token ID (Ethereum)
     blockchainTokenId: {
       type: String,

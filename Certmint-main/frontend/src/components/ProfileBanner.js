@@ -1,5 +1,5 @@
-import { useNavigate } from "react-router-dom";
-import { useEffect, useState } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
+import { useEffect, useRef, useState } from "react";
 
 export default function ProfileBanner({
   title,
@@ -8,9 +8,11 @@ export default function ProfileBanner({
   role
 }) {
   const navigate = useNavigate();
+  const location = useLocation();
   const [openNotifications, setOpenNotifications] = useState(false);
   const [unread, setUnread] = useState(0);
   const [notifications, setNotifications] = useState([]);
+  const fetchingUnreadRef = useRef(false);
 
   const handleLogout = () => {
     localStorage.removeItem("token");
@@ -21,7 +23,8 @@ export default function ProfileBanner({
   const token = localStorage.getItem("token");
 
   const fetchUnread = async () => {
-    if (!token || role !== "STUDENT") return;
+    if (!token || role !== "STUDENT" || fetchingUnreadRef.current) return;
+    fetchingUnreadRef.current = true;
     try {
       const res = await fetch("http://localhost:5000/api/notifications/unread-count", {
         headers: { Authorization: `Bearer ${token}` },
@@ -30,6 +33,8 @@ export default function ProfileBanner({
       if (res.ok) setUnread(json.unread || 0);
     } catch {
       // ignore
+    } finally {
+      fetchingUnreadRef.current = false;
     }
   };
 
@@ -60,9 +65,9 @@ export default function ProfileBanner({
   };
 
   useEffect(() => {
+    if (role !== "STUDENT") return;
     fetchUnread();
-    // simple polling for new notifications while on dashboard
-    const id = setInterval(fetchUnread, 15000);
+    const id = setInterval(fetchUnread, 30000);
     return () => clearInterval(id);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [role]);
@@ -105,7 +110,22 @@ export default function ProfileBanner({
         </div>
 
         {/* Right: Actions */}
-        <div className="flex gap-3 items-center">
+        <div className="flex gap-3 items-center flex-wrap justify-end">
+          {/* Dashboard (Student) */}
+          {role === "STUDENT" && (
+            <button
+              type="button"
+              onClick={() => navigate("/student-dashboard")}
+              className={`px-4 py-2 transition rounded-md font-semibold shadow-lg ${
+                location.pathname === "/student-dashboard"
+                  ? "bg-blue-600 text-white"
+                  : "bg-gray-700 hover:bg-gray-600 text-white"
+              }`}
+            >
+              Dashboard
+            </button>
+          )}
+
           {/* Notifications (Student) */}
           {role === "STUDENT" && (
             <div className="relative">
@@ -206,12 +226,13 @@ export default function ProfileBanner({
             </div>
           )}
 
-          {role === "INSTITUTION" && (
+          {role === "STUDENT" && (
             <button
-              onClick={() => navigate("/institute/setup")}
-              className="px-6 py-2 bg-gray-700 hover:bg-gray-600 transition rounded-md text-white font-semibold shadow-lg"
+              type="button"
+              onClick={() => navigate("/student-profile")}
+              className="px-4 py-2 bg-gray-700 hover:bg-gray-600 transition rounded-md text-white font-semibold shadow-lg"
             >
-              Edit Profile
+              Profile
             </button>
           )}
 

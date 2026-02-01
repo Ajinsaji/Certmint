@@ -54,6 +54,8 @@ export default function VerifyCertificate() {
               // Prefer the backend snapshot name (stable) if present
               merged.institutionName =
                 cert.institutionName || merged.institutionName;
+              merged.timePeriod = cert.timePeriod;
+              merged.extraContent = cert.extraContent;
               setData({ ...merged });
 
               if (cert.institutionId) {
@@ -149,6 +151,8 @@ export default function VerifyCertificate() {
         studentName={data.studentName}
         subject={data.subject}
         issueDate={data.issuedAt}
+        timePeriod={data.timePeriod}
+        extraContent={data.extraContent}
       />
 
       <div className="flex gap-4 flex-wrap justify-center">

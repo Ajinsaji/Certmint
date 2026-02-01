@@ -1,8 +1,7 @@
 import React, { useState } from "react";
-import {useEffect } from "react";
-import decoded from "jwt-decode";
+import { useEffect } from "react";
 import CertificatePreview from "../components/CertificatePreview";
-
+import InstitutionHeader from "../components/InstitutionHeader";
 import { useNavigate } from "react-router-dom";
 
 export default function IssueCertificate() {
@@ -14,6 +13,9 @@ export default function IssueCertificate() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const [issueMode, setIssueMode] = useState("quick"); // "quick" | "manual"
+  const [timePeriod, setTimePeriod] = useState("");
+  const [extraContent, setExtraContent] = useState("");
 
   useEffect(() => {
     const fetchInstitution = async () => {
@@ -67,6 +69,10 @@ export default function IssueCertificate() {
           subject,
           studentName,
           studentEmail,
+          ...(issueMode === "manual" && (timePeriod || extraContent) && {
+            timePeriod: timePeriod.trim() || undefined,
+            extraContent: extraContent.trim() || undefined,
+          }),
         }),
       });
 
@@ -90,11 +96,37 @@ export default function IssueCertificate() {
     }
   };
 
-  return (
-    <section className="bg-gray-50 dark:bg-gray-900 min-h-screen grid grid-cols-1 md:grid-cols-2">
+  const user = (() => {
+    try {
+      return JSON.parse(localStorage.getItem("user") || "null");
+    } catch {
+      return null;
+    }
+  })();
 
-      {/* LEFT: FORM (UNCHANGED DESIGN) */}
-      <div className="flex items-center justify-center px-5">
+  return (
+    <section className="relative bg-gray-50 dark:bg-gray-900 min-h-screen grid grid-cols-1 md:grid-cols-2">
+      <div className="col-span-full">
+        <InstitutionHeader
+          title={institution?.name || user?.name || "Institution"}
+          subtitle={user?.email || ""}
+          logoUrl={institution?.logoUrl}
+        />
+      </div>
+
+      {/* LEFT: Back + FORM */}
+      <div className="flex flex-col items-center justify-start px-5 py-6">
+        <button
+          type="button"
+          onClick={() => navigate("/institution-dashboard")}
+          className="self-start inline-flex items-center gap-2 text-gray-700 dark:text-gray-200 hover:text-gray-900 dark:hover:text-white bg-white dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 border border-gray-200 dark:border-gray-600 px-3 py-2 rounded-lg transition shadow-sm mb-4"
+          aria-label="Back to dashboard"
+        >
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <path d="M15 18L9 12L15 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+          <span className="text-sm font-medium">Back to dashboard</span>
+        </button>
         <div className="w-full max-w-lg bg-white dark:bg-gray-800 rounded-lg shadow px-12 py-14 space-y-5">
 
           {/* Header */}
@@ -105,6 +137,32 @@ export default function IssueCertificate() {
             <p className="text-sm text-gray-500 mt-1">
               Generate and issue a new certificate
             </p>
+          </div>
+
+          {/* Mode: Quick issue vs Manual content */}
+          <div className="flex rounded-lg border border-gray-200 dark:border-gray-600 p-1 bg-gray-100 dark:bg-gray-700">
+            <button
+              type="button"
+              onClick={() => setIssueMode("quick")}
+              className={`flex-1 py-2 px-3 text-sm font-medium rounded-md transition ${
+                issueMode === "quick"
+                  ? "bg-white dark:bg-gray-800 text-gray-900 dark:text-white shadow"
+                  : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
+              }`}
+            >
+              Quick issue
+            </button>
+            <button
+              type="button"
+              onClick={() => setIssueMode("manual")}
+              className={`flex-1 py-2 px-3 text-sm font-medium rounded-md transition ${
+                issueMode === "manual"
+                  ? "bg-white dark:bg-gray-800 text-gray-900 dark:text-white shadow"
+                  : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
+              }`}
+            >
+              Manual content
+            </button>
           </div>
 
           {/* Alerts */}
@@ -122,20 +180,52 @@ export default function IssueCertificate() {
 
           {/* Form */}
           <form onSubmit={handleSubmit} className="space-y-4">
-            <input
-              className="input-field"
-              placeholder="Certificate Subject"
-              value={subject}
-              onChange={(e) => setSubject(e.target.value)}
-              required
-            />
-
-            <input
-              className="input-field"
-              placeholder="Student Name"
-              value={studentName}
-              onChange={(e) => setStudentName(e.target.value)}
-            />
+            {issueMode === "quick" ? (
+              <>
+                <input
+                  className="input-field"
+                  placeholder="Certificate Subject"
+                  value={subject}
+                  onChange={(e) => setSubject(e.target.value)}
+                  required
+                />
+                <input
+                  className="input-field"
+                  placeholder="Student Name"
+                  value={studentName}
+                  onChange={(e) => setStudentName(e.target.value)}
+                />
+              </>
+            ) : (
+              <>
+                <input
+                  className="input-field"
+                  placeholder="Name on certificate"
+                  value={studentName}
+                  onChange={(e) => setStudentName(e.target.value)}
+                  required
+                />
+                <input
+                  className="input-field"
+                  placeholder="Course / Achievement"
+                  value={subject}
+                  onChange={(e) => setSubject(e.target.value)}
+                  required
+                />
+                <input
+                  className="input-field"
+                  placeholder="Time period (optional) e.g. Jan 2024 - Jun 2024"
+                  value={timePeriod}
+                  onChange={(e) => setTimePeriod(e.target.value)}
+                />
+                <input
+                  className="input-field"
+                  placeholder="Additional content (optional) e.g. duration, location"
+                  value={extraContent}
+                  onChange={(e) => setExtraContent(e.target.value)}
+                />
+              </>
+            )}
 
             <input
               className="input-field"
@@ -163,6 +253,8 @@ export default function IssueCertificate() {
         studentName={studentName}
         subject={subject}
         issueDate={issueDate}
+        timePeriod={timePeriod}
+        extraContent={extraContent}
       />
     </section>
   );
