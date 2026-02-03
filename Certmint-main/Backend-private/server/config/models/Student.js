@@ -12,6 +12,11 @@ const studentSchema = new mongoose.Schema(
       type: Date,
       default: null,
     },
+    courseName: {
+      type: String,
+      default: "",
+      trim: true,
+    },
   },
   { timestamps: true }
 );

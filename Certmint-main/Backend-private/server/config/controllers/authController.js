@@ -8,7 +8,7 @@ const PendingInstitutionRequest = require('../models/PendingInstitutionRequest')
 // POST /api/auth/signup/student - name, email, dateOfBirth, password → redirect to login
 exports.signupStudent = async (req, res) => {
   try {
-    const { name, email, dateOfBirth, password } = req.body;
+    const { name, email, dateOfBirth, password, courseName } = req.body;
     if (!name || !email || !password) {
       return res.status(400).json({ message: 'Name, email and password are required' });
     }
@@ -28,6 +28,7 @@ exports.signupStudent = async (req, res) => {
     await Student.create({
       userId: user._id,
       dateOfBirth: isNaN(dob?.getTime()) ? null : dob,
+      courseName: (courseName || '').trim(),
     });
     return res.status(201).json({
       message: 'Signup successful. Please login.',
@@ -173,19 +174,28 @@ exports.login = async (req, res) => {
     }
 
     const token = jwt.sign(
-      { userId: user._id, role: user.role,email: user.email,  },
+      { userId: user._id, role: user.role, email: user.email },
       process.env.JWT_SECRET,
       { expiresIn: '7d' }
     );
 
+    let responseUser = {
+      id: user._id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+    };
+
+    if (user.role === 'STUDENT') {
+      const studentProfile = await Student.findOne({ userId: user._id }).select('courseName').lean();
+      if (studentProfile?.courseName) {
+        responseUser.courseName = studentProfile.courseName;
+      }
+    }
+
     res.json({
       message: 'Login successful',
-      user: {
-        id: user._id,
-        name: user.name,
-        email: user.email,
-        role: user.role,
-      },
+      user: responseUser,
       token,
     });
   } catch (err) {

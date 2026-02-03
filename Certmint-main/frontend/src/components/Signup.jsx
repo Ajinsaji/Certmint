@@ -15,6 +15,7 @@ export default function SignupPage() {
   // Student fields
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
+  const [courseName, setCourseName] = useState("");
   const [dob, setDob] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -53,6 +54,7 @@ export default function SignupPage() {
         body: JSON.stringify({
           name: fullName.trim(),
           email: email.trim().toLowerCase(),
+          courseName: courseName.trim() || undefined,
           dateOfBirth: dob || undefined,
           password,
         }),
@@ -200,6 +202,16 @@ export default function SignupPage() {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="you@example.com"
+                    className="w-full rounded-lg border border-slate-600 bg-slate-700/50 px-4 py-2.5 text-white placeholder-slate-500 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-300 mb-1">Course name</label>
+                  <input
+                    type="text"
+                    value={courseName}
+                    onChange={(e) => setCourseName(e.target.value)}
+                    placeholder="e.g. Computer Science, BCA, MBA"
                     className="w-full rounded-lg border border-slate-600 bg-slate-700/50 px-4 py-2.5 text-white placeholder-slate-500 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                   />
                 </div>
