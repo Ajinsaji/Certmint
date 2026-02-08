@@ -10,6 +10,6 @@ frontend/node_modules/
 dist/
 build/
 
-# Uploaded files (VERY IMPORTANT)
-Certmint-main/Backend-private/server/uploads/
+# Uploaded files (do not commit)
+Backend-private/server/uploads/
 
