@@ -103,6 +103,7 @@ router.get("/", authMiddleware, async (req, res) => {
         contactNumber: institution.contactNumber,
         locationUrl: institution.locationUrl,
         logoUrl: institution.logoUrl,
+        certificateTemplate: institution.certificateTemplate || "classic",
       },
       stats: {
         totalCertificates,
@@ -145,7 +146,7 @@ router.get("/:id", async (req, res) => {
     }
 
     const institution = await Institution.findById(id)
-      .select("name logoUrl address contactNumber locationUrl")
+      .select("name logoUrl address contactNumber locationUrl certificateTemplate")
       .lean();
 
     if (!institution) {
@@ -159,6 +160,7 @@ router.get("/:id", async (req, res) => {
       address: institution.address || "",
       contactNumber: institution.contactNumber || "",
       locationUrl: institution.locationUrl || "",
+      certificateTemplate: institution.certificateTemplate || "classic",
     });
   } catch (err) {
     console.error("GET /institution/:id error:", err);
@@ -173,7 +175,7 @@ router.post(
   async (req, res) => {
     try {
       const userId = req.user.userId;
-      const { name, contactNumber, locationUrl, address } = req.body;
+      const { name, contactNumber, locationUrl, address, certificateTemplate } = req.body;
 
       if (!name) {
         return res
@@ -199,16 +201,21 @@ router.post(
         logoUrl = `/uploads/institutions/${req.file.filename}`;
       }
 
+      const updateFields = {
+        userId,
+        name,
+        contactNumber,
+        locationUrl,
+        address: addressString,
+        ...(logoUrl && { logoUrl }),
+      };
+      if (certificateTemplate === "classic") {
+        updateFields.certificateTemplate = certificateTemplate;
+      }
+
       const institution = await Institution.findOneAndUpdate(
         { userId },
-        {
-          userId,
-          name,
-          contactNumber,
-          locationUrl,
-          address: addressString,
-          ...(logoUrl && { logoUrl }),
-        },
+        updateFields,
         {
           new: true,
           upsert: true,

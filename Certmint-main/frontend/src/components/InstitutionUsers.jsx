@@ -15,6 +15,7 @@ export default function InstitutionUsers() {
 
   const [certificates, setCertificates] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [logoUrl, setLogoUrl] = useState(null);
 
   useEffect(() => {
     if (!user || user.role !== "INSTITUTION") {
@@ -34,7 +35,21 @@ export default function InstitutionUsers() {
         setLoading(false);
       }
     };
+    const fetchInstitution = async () => {
+      try {
+        const res = await fetch("http://localhost:5000/api/institution/me", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (res.ok) {
+          const data = await res.json();
+          setLogoUrl(data.logoUrl || null);
+        }
+      } catch {
+        // keep logoUrl null
+      }
+    };
     fetchCerts();
+    fetchInstitution();
   }, [navigate, user, token]);
 
   if (!user || user.role !== "INSTITUTION") return null;
@@ -55,7 +70,7 @@ export default function InstitutionUsers() {
       <InstitutionHeader
         title={user.name || "Institution"}
         subtitle={user.email || ""}
-        logoUrl={null}
+        logoUrl={logoUrl}
       />
       <div className="bg-gray-900 min-h-screen px-6 py-10">
         <div className="max-w-4xl mx-auto">

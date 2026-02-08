@@ -38,6 +38,7 @@ export default function InstitutionDashboard() {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [headerLogoUrl, setHeaderLogoUrl] = useState(null);
   const token = localStorage.getItem("token");
   const user = JSON.parse(localStorage.getItem("user") || "{}");
   const [certificates, setCertificates] = useState([]);
@@ -81,6 +82,20 @@ export default function InstitutionDashboard() {
   };
 
   useEffect(() => {
+    const fetchHeaderInstitution = async () => {
+      try {
+        const res = await fetch("http://localhost:5000/api/institution/me", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (res.ok) {
+          const inst = await res.json();
+          setHeaderLogoUrl(inst.logoUrl || null);
+        }
+      } catch {
+        // keep null
+      }
+    };
+    fetchHeaderInstitution();
     fetchDashboard();
     fetchCertificates();
   }, []);
@@ -94,7 +109,7 @@ export default function InstitutionDashboard() {
   if (loading) {
     return (
       <>
-        <InstitutionHeader title="..." subtitle={user?.email} logoUrl={null} />
+        <InstitutionHeader title="..." subtitle={user?.email} logoUrl={headerLogoUrl} />
         <div className="bg-gray-900 min-h-screen flex items-center justify-center">
           <div className="flex flex-col items-center gap-4">
             <div className="h-12 w-12 animate-spin rounded-full border-4 border-blue-500 border-t-transparent" />
@@ -108,7 +123,7 @@ export default function InstitutionDashboard() {
   if (error) {
     return (
       <>
-        <InstitutionHeader title="Institution" subtitle={user?.email} logoUrl={null} />
+        <InstitutionHeader title="Institution" subtitle={user?.email} logoUrl={headerLogoUrl} />
         <div className="bg-gray-900 min-h-screen flex items-center justify-center p-6">
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}

@@ -14,7 +14,7 @@ const mintCertificateNFT = require("../blockchain/mintCertificateNFT.cjs");
 
 router.post("/", authMiddleware, async (req, res) => {
   try {
-    const { subject, studentName, studentEmail, timePeriod, extraContent } = req.body;
+    const { subject, studentName, studentEmail, timePeriod, extraContent, certificateTemplate } = req.body;
     const userId = req.user.userId; // institution's userId
 
     // find institution
@@ -22,6 +22,9 @@ router.post("/", authMiddleware, async (req, res) => {
     if (!institution) {
       return res.status(400).json({ message: "Institution profile not found" });
     }
+
+    const validTemplates = ["classic"];
+    const template = validTemplates.includes(certificateTemplate) ? certificateTemplate : "classic";
 
     // create the certificate directly (no student lookup)
     const cert = await Certificate.create({
@@ -32,6 +35,7 @@ router.post("/", authMiddleware, async (req, res) => {
       institutionNameSnapshot: institution.name,
       ...(timePeriod && { timePeriod: String(timePeriod).trim() }),
       ...(extraContent && { extraContent: String(extraContent).trim() }),
+      certificateTemplate: template,
     });
 
     // 🔗 Mint NFT on blockchain
@@ -155,6 +159,7 @@ router.get("/:id", async (req, res) => {
       blockchainTokenId: cert.blockchainTokenId,
       timePeriod: cert.timePeriod || null,
       extraContent: cert.extraContent || null,
+      certificateTemplate: cert.certificateTemplate || "classic",
     });
   } catch (err) {
     console.error("Get certificate error:", err);

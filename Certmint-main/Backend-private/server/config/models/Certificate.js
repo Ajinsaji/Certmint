@@ -71,6 +71,14 @@ const certificateSchema = new mongoose.Schema(
     blockchainTokenId: {
       type: String,
     },
+
+    // certificate design template used when issued
+    certificateTemplate: {
+      type: String,
+      trim: true,
+      enum: ["classic"],
+      default: "classic",
+    },
   },
   { timestamps: true }
 );

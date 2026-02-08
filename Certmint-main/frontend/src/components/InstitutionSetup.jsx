@@ -48,6 +48,7 @@ const InstitutionSetup = () => {
         contactNumber: data.contactNumber || "",
         locationUrl: data.locationUrl || "",
       });
+      setInstitutionLogoUrl(data.logoUrl || null);
     } catch (err) {
       console.error("Auto-fill failed", err);
     }
@@ -72,8 +73,11 @@ const InstitutionSetup = () => {
 
   const [logoPreview, setLogoPreview] = useState(null);
   const [logoFile, setLogoFile] = useState(null);
+  const [institutionLogoUrl, setInstitutionLogoUrl] = useState(null);
 
   const [currentPassword, setCurrentPassword] = useState("");
+  // Certificate template is selected on Issue Certificate page; kept for any leftover UI refs
+  const [certificateTemplate, setCertificateTemplate] = useState("classic");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [passwordLoading, setPasswordLoading] = useState(false);
@@ -196,7 +200,7 @@ const InstitutionSetup = () => {
       <InstitutionHeader
         title={user?.name || "Institution"}
         subtitle={user?.email || ""}
-        logoUrl={null}
+        logoUrl={institutionLogoUrl}
       />
       <section className="bg-gray-50 dark:bg-gray-900 min-h-screen flex items-center justify-center px-5 py-10">
         <div className="w-full max-w-lg bg-white dark:bg-gray-800 rounded-lg shadow px-12 py-10 space-y-5">
@@ -224,6 +228,12 @@ const InstitutionSetup = () => {
             {logoPreview ? (
               <img
                 src={logoPreview}
+                alt="Institution Logo"
+                className="w-full h-full object-cover"
+              />
+            ) : institutionLogoUrl && institutionLogoUrl !== "undefined" && institutionLogoUrl !== "null" ? (
+              <img
+                src={`http://localhost:5000${institutionLogoUrl}`}
                 alt="Institution Logo"
                 className="w-full h-full object-cover"
               />
@@ -298,7 +308,16 @@ const InstitutionSetup = () => {
 
         {/* Change password */}
         <div className="mt-8 pt-8 border-t border-gray-200 dark:border-gray-700">
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">Change password</h3>
+          <div className="flex items-center gap-3 mb-3">
+            {institutionLogoUrl && institutionLogoUrl !== "undefined" && institutionLogoUrl !== "null" && (
+              <img
+                src={`http://localhost:5000${institutionLogoUrl}`}
+                alt="Institution Logo"
+                className="w-10 h-10 rounded-full object-cover border-2 border-gray-300 dark:border-gray-600 shrink-0"
+              />
+            )}
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Change password</h3>
+          </div>
           {passwordError && (
             <p className="text-sm text-red-500 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-md px-3 py-2 mb-3">
               {passwordError}

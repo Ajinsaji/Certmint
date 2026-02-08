@@ -69,6 +69,7 @@ export default function IssueCertificate() {
           subject,
           studentName,
           studentEmail,
+          certificateTemplate: "classic",
           ...(issueMode === "manual" && (timePeriod || extraContent) && {
             timePeriod: timePeriod.trim() || undefined,
             extraContent: extraContent.trim() || undefined,

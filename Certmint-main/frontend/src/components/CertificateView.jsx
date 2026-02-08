@@ -99,18 +99,20 @@ export default function CertificateView() {
   if (loading) return <div className="p-10">Loading certificate…</div>;
   if (error) return <div className="p-10 text-red-500">{error}</div>;
 
+  const verifyUrl = certificate?.blockchainTokenId
+    ? `${window.location.origin}/verify/${certificate.blockchainTokenId}`
+    : null;
+
   const copyVerifyLink = async () => {
-
-  const verifyUrl = `${window.location.origin}/verify/${certificate.blockchainTokenId}`;
-
-  try {
-    await navigator.clipboard.writeText(verifyUrl);
-    alert("Verify link copied 🧾"); 
-  } catch (err) {
-    console.error("Copy failed", err);
-    alert("Failed to copy link");
-  }
-};
+    if (!verifyUrl) return;
+    try {
+      await navigator.clipboard.writeText(verifyUrl);
+      alert("Verify link copied 🧾");
+    } catch (err) {
+      console.error("Copy failed", err);
+      alert("Failed to copy link");
+    }
+  };
 
 
   return (
@@ -157,6 +159,7 @@ export default function CertificateView() {
         )}
         timePeriod={certificate.timePeriod}
         extraContent={certificate.extraContent}
+        verifyUrl={verifyUrl}
       />
       <div className="flex gap-4">
         <button

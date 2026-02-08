@@ -56,6 +56,7 @@ export default function VerifyCertificate() {
                 cert.institutionName || merged.institutionName;
               merged.timePeriod = cert.timePeriod;
               merged.extraContent = cert.extraContent;
+              merged.certificateTemplate = cert.certificateTemplate || "classic";
               setData({ ...merged });
 
               if (cert.institutionId) {
@@ -153,6 +154,7 @@ export default function VerifyCertificate() {
         issueDate={data.issuedAt}
         timePeriod={data.timePeriod}
         extraContent={data.extraContent}
+        verifyUrl={`${window.location.origin}/verify/${tokenId}`}
       />
 
       <div className="flex gap-4 flex-wrap justify-center">

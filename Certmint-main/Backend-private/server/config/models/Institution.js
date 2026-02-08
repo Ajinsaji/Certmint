@@ -35,6 +35,13 @@ const institutionSchema = new mongoose.Schema(
       trim: true,
       default: null,
     },
+
+    certificateTemplate: {
+      type: String,
+      trim: true,
+      enum: ["classic"],
+      default: "classic",
+    },
   },
   { timestamps: true }
 );

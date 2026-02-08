@@ -1,9 +1,10 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import InstitutionHeader from "./InstitutionHeader";
 
 export default function InstitutionNotifications() {
   const navigate = useNavigate();
+  const token = localStorage.getItem("token");
   const user = (() => {
     try {
       return JSON.parse(localStorage.getItem("user") || "null");
@@ -12,11 +13,28 @@ export default function InstitutionNotifications() {
     }
   })();
 
-  React.useEffect(() => {
+  const [logoUrl, setLogoUrl] = useState(null);
+
+  useEffect(() => {
     if (!user || user.role !== "INSTITUTION") {
       navigate("/login");
+      return;
     }
-  }, [navigate, user]);
+    const fetchInstitution = async () => {
+      try {
+        const res = await fetch("http://localhost:5000/api/institution/me", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (res.ok) {
+          const data = await res.json();
+          setLogoUrl(data.logoUrl || null);
+        }
+      } catch {
+        // keep logoUrl null
+      }
+    };
+    fetchInstitution();
+  }, [navigate, user, token]);
 
   if (!user || user.role !== "INSTITUTION") return null;
 
@@ -25,7 +43,7 @@ export default function InstitutionNotifications() {
       <InstitutionHeader
         title={user.name || "Institution"}
         subtitle={user.email || ""}
-        logoUrl={null}
+        logoUrl={logoUrl}
       />
       <div className="bg-gray-900 min-h-screen flex justify-center items-center px-6">
         <div className="bg-gray-800 border border-gray-700 rounded-xl p-8 max-w-md w-full text-center">
