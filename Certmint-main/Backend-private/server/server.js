@@ -13,16 +13,30 @@ const seedDefaultAdmin = require("./config/seedAdmin");
 
 const app = express();
 const path = require("path");
+const fs = require("fs");
 
 // Enable CORS for frontend (React app)
 app.use(cors({
   origin: 'http://localhost:3000',
 }));
 
-app.use(
-  "/uploads",
-  express.static(path.join(__dirname, "uploads"))
-);
+// Serve uploads: if file doesn't exist, return 404 without opening (avoids ENOENT when DB has stale logo path)
+app.use("/uploads", (req, res, next) => {
+  const uploadsDir = path.join(__dirname, "uploads");
+  const filePath = path.resolve(uploadsDir, req.path.replace(/^\//, ""));
+  if (!filePath.startsWith(uploadsDir)) {
+    res.status(404).end();
+    return;
+  }
+  fs.access(filePath, fs.constants.F_OK, (err) => {
+    if (err) {
+      res.status(404).end();
+      return;
+    }
+    next();
+  });
+});
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 // Parse incoming JSON bodies
 app.use(express.json());
