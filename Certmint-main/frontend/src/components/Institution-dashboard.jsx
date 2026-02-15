@@ -104,7 +104,6 @@ export default function InstitutionDashboard() {
     ? (data.monthlyIssuance[data.monthlyIssuance.length - 1]?.count ?? 0)
     : 0;
   const totalCerts = data?.stats?.totalCertificates ?? certificates.length;
-  const uniqueStudents = data?.stats?.totalUniqueStudents ?? 0;
 
   if (loading) {
     return (
@@ -193,7 +192,7 @@ export default function InstitutionDashboard() {
           </motion.div>
 
           {/* Stat cards */}
-          <div className="mb-10 grid grid-cols-1 gap-5 sm:grid-cols-3">
+          <div className="mb-10 grid grid-cols-1 gap-5 sm:grid-cols-2">
             <StatCard
               delay={0.1}
               accent="blue"
@@ -207,17 +206,6 @@ export default function InstitutionDashboard() {
             />
             <StatCard
               delay={0.2}
-              accent="emerald"
-              label="Unique students"
-              value={uniqueStudents}
-              icon={
-                <svg className="h-6 w-6 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
-                </svg>
-              }
-            />
-            <StatCard
-              delay={0.3}
               accent="amber"
               label="This month"
               value={thisMonthCount}

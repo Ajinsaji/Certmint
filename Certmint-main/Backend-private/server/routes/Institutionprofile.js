@@ -49,8 +49,6 @@ router.get("/", authMiddleware, async (req, res) => {
 
     // Basic stats
     const totalCertificates = await Certificate.countDocuments({ institution: instId });
-    const distinctStudentIds = await Certificate.distinct("student", { institution: instId });
-    const totalUniqueStudents = distinctStudentIds.filter(Boolean).length;
 
     // Subject breakdown (top subjects)
     const subjectAgg = await Certificate.aggregate([
@@ -83,6 +81,7 @@ router.get("/", authMiddleware, async (req, res) => {
     }
 
     // Student list (basic) - limited to first 200 unique student ids
+    const distinctStudentIds = await Certificate.distinct("student", { institution: instId });
     const studentIdsForQuery = distinctStudentIds.filter(Boolean).slice(0, 200);
     const students = await Student.find({ _id: { $in: studentIdsForQuery } })
       .populate({ path: "userId", model: "User", select: "name email" })
@@ -107,7 +106,6 @@ router.get("/", authMiddleware, async (req, res) => {
       },
       stats: {
         totalCertificates,
-        totalUniqueStudents,
       },
       recentCertificates,
       subjectBreakdown: subjectAgg.map(s => ({ subject: s._id, count: s.count })),
